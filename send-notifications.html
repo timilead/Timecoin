@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Send Notification - Admin Panel</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to right, #1e3c72, #2a5298);
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .form-container {
+      background: #fff;
+      color: #333;
+      padding: 30px;
+      border-radius: 10px;
+      width: 100%;
+      max-width: 450px;
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .form-container h2 {
+      margin-bottom: 20px;
+      text-align: center;
+      color: #1e3c72;
+    }
+
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
+
+    button {
+      margin-top: 20px;
+      width: 100%;
+      padding: 12px;
+      background: #1e3c72;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #16325c;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="form-container">
+    <h2>Send Notification</h2>
+    <form id="notificationForm">
+      <label for="type">Notification Type</label>
+      <select id="type" required>
+        <option value="">Select Type</option>
+        <option value="general">General</option>
+        <option value="personal">Personal</option>
+      </select>
+
+      <div id="userIdField" class="hidden">
+        <label for="userId">User ID (for Personal)</label>
+        <input type="text" id="userId" placeholder="Enter Firebase Auth User ID">
+      </div>
+
+      <label for="message">Message</label>
+      <textarea id="message" rows="4" required placeholder="Enter notification message..."></textarea>
+
+      <button type="submit">Send Notification</button>
+    </form>
+  </div>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+  <script>
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyA-e0Dpok43vl7URZ-BoQtUANJq3smre6U",
+      authDomain: "timecoin-92d97.firebaseapp.com",
+      projectId: "timecoin-92d97",
+      storageBucket: "timecoin-92d97.appspot.com",
+      messagingSenderId: "944867492309",
+      appId: "1:944867492309:web:99ee3ebd9adcc8e9e4bd5c",
+      measurementId: "G-5CRJ3MXR3X"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const form = document.getElementById('notificationForm');
+    const typeSelect = document.getElementById('type');
+    const userIdField = document.getElementById('userIdField');
+    const userIdInput = document.getElementById('userId');
+    const messageInput = document.getElementById('message');
+
+    typeSelect.addEventListener('change', () => {
+      userIdField.classList.toggle('hidden', typeSelect.value !== 'personal');
+    });
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const type = typeSelect.value;
+      const message = messageInput.value.trim();
+      const userId = userIdInput.value.trim();
+
+      if (!type || !message || (type === 'personal' && !userId)) {
+        alert("Please fill in all required fields.");
+        return;
+      }
+
+      try {
+        const data = {
+          type,
+          message,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        };
+
+        if (type === 'personal') {
+          data.userId = userId;
+        }
+
+        await db.collection("notifications").add(data);
+        alert("Notification sent successfully!");
+        form.reset();
+        userIdField.classList.add('hidden');
+      } catch (error) {
+        console.error("Error sending notification:", error);
+        alert("Failed to send notification.");
+      }
+    });
+  </script>
+</body>
+</html>

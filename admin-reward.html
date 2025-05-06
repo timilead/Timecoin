@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Reward Users - Admin</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      margin: 0;
+      padding: 2rem;
+    }
+    h2 {
+      text-align: center;
+      color: #004aad;
+    }
+    .reward-box {
+      background: white;
+      max-width: 400px;
+      margin: auto;
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    input, select, button {
+      width: 100%;
+      padding: 1rem;
+      margin: 0.7rem 0;
+      font-size: 1rem;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background: #004aad;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #003080;
+    }
+  </style>
+</head>
+<body>
+  <h2>Reward a User</h2>
+  <div class="reward-box">
+    <input type="text" id="userId" placeholder="Enter User ID" required />
+    <input type="number" id="amount" placeholder="Enter Amount (₦)" required />
+    <select id="balanceType">
+      <option value="bonus">Timecoin Bonus Balance</option>
+      <option value="referral">Referral Balance</option>
+    </select>
+    <button onclick="rewardUser()">Send Reward</button>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+    import { getFirestore, doc, getDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyC-LwNCuH3-LnDJymZXwJROc_HVXxRgfXs",
+      authDomain: "timecoin-92d97.firebaseapp.com",
+      projectId: "timecoin-92d97",
+      storageBucket: "timecoin-92d97.appspot.com",
+      messagingSenderId: "754896271469",
+      appId: "1:754896271469:web:0a0e401688a8fa632e8d9f",
+      measurementId: "G-8CP3F38B4K"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    async function rewardUser() {
+      const userId = document.getElementById("userId").value.trim();
+      const amount = parseFloat(document.getElementById("amount").value);
+      const balanceType = document.getElementById("balanceType").value;
+
+      if (!userId || isNaN(amount) || amount <= 0) {
+        alert("Please fill all fields correctly.");
+        return;
+      }
+
+      try {
+        const userRef = doc(db, "users", userId);
+        const userSnap = await getDoc(userRef);
+
+        if (!userSnap.exists()) {
+          alert("User not found.");
+          return;
+        }
+
+        const fieldToUpdate = balanceType === "bonus" ? "bonusBalance" : "referralBalance";
+
+        await updateDoc(userRef, {
+          [fieldToUpdate]: increment(amount)
+        });
+
+        alert(`₦${amount} added to user's ${balanceType === "bonus" ? "Timecoin Bonus" : "Referral"} Balance.`);
+      } catch (err) {
+        console.error("Error updating balance:", err);
+        alert("Error rewarding user.");
+      }
+    }
+  </script>
+</body>
+</html>

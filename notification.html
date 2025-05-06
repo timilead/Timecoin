@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Notifications - Timecoin</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f2f5f9;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .container {
+      margin-top: 60px;
+      width: 90%;
+      max-width: 600px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 0 12px rgba(0,0,0,0.1);
+      padding: 20px;
+    }
+
+    h2 {
+      text-align: center;
+      color: #1e3c72;
+      margin-bottom: 20px;
+    }
+
+    .notification {
+      background: #f9f9f9;
+      border-left: 5px solid #1e3c72;
+      padding: 15px;
+      margin-bottom: 15px;
+      border-radius: 8px;
+    }
+
+    .notification p {
+      margin: 0;
+      font-size: 15px;
+    }
+
+    .notification small {
+      display: block;
+      margin-top: 8px;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Notifications</h2>
+    <div id="notifications"></div>
+  </div>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+
+  <script>
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyA-e0Dpok43vl7URZ-BoQtUANJq3smre6U",
+      authDomain: "timecoin-92d97.firebaseapp.com",
+      projectId: "timecoin-92d97",
+      storageBucket: "timecoin-92d97.appspot.com",
+      messagingSenderId: "944867492309",
+      appId: "1:944867492309:web:99ee3ebd9adcc8e9e4bd5c",
+      measurementId: "G-5CRJ3MXR3X"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    const notificationsContainer = document.getElementById('notifications');
+
+    auth.onAuthStateChanged(async (user) => {
+      if (!user) {
+        window.location.href = "login.html";
+        return;
+      }
+
+      const userId = user.uid;
+
+      const generalQuery = db.collection('notifications')
+        .where('type', '==', 'general');
+
+      const personalQuery = db.collection('notifications')
+        .where('type', '==', 'personal')
+        .where('userId', '==', userId);
+
+      const generalSnap = await generalQuery.get();
+      const personalSnap = await personalQuery.get();
+
+      const allNotifications = [];
+
+      generalSnap.forEach(doc => {
+        allNotifications.push(doc.data());
+      });
+
+      personalSnap.forEach(doc => {
+        allNotifications.push(doc.data());
+      });
+
+      allNotifications.sort((a, b) => {
+        return b.createdAt?.seconds - a.createdAt?.seconds;
+      });
+
+      if (allNotifications.length === 0) {
+        notificationsContainer.innerHTML = '<p style="text-align:center;">No notifications found.</p>';
+      } else {
+        allNotifications.forEach(note => {
+          const div = document.createElement('div');
+          div.className = 'notification';
+          div.innerHTML = `
+            <p>${note.message}</p>
+            <small>${new Date(note.createdAt?.seconds * 1000).toLocaleString()}</small>
+          `;
+          notificationsContainer.appendChild(div);
+        });
+      }
+    });
+  </script>
+</body>
+</html>

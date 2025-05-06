@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Panel - Timecoin</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      padding: 20px;
+    }
+    .admin-container {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px #ccc;
+    }
+    admin-container {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px #ccc;
+    }
+    h2 {
+      text-align: center;
+    }
+    button {
+      padding: 15px;
+      margin: 10px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    input[type="password"] {
+      padding: 10px;
+      width: 200px;
+      margin: 10px auto;
+      display: block;
+    }
+    #admin-error {
+      color: red;
+      text-align: center;
+    }
+    #admin-panel {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+<div class="admin-container">
+  <h2>Admin Panel</h2>
+
+  <!-- Admin Password Authentication -->
+  <div id="admin-auth">
+    <h3>Enter Admin Password</h3>
+    <input type="password" id="admin-password" placeholder="Admin Password">
+    <button onclick="verifyAdmin()">Unlock Panel</button>
+    <p id="admin-error"></p>
+  </div>
+
+  <!-- Hidden Admin Panel -->
+  <div id="admin-panel">
+    <button onclick="location.href='manage-posts.html'">Manage Posts</button>
+  <button onclick="location.href='make-admin.html'">Make admin</button>
+    <button onclick="location.href='add-task.html'">Add task</button>
+    <button onclick="location.href='acc.html'">Users acc info</button>
+    
+    <button onclick="location.href='manage-withdrawals.html'">Manage Withdrawals</button>
+    <button onclick="location.href='send-notifications.html'">Send Notifications</button>
+    <button onclick="location.href='generate-payment-code.html'" style="background-color: #28a745;">Generate Payment Code</button>
+    <button onclick="logout()">Logout</button>
+  </div>
+</div>
+
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyA-e0Dpok43vl7URZ-BoQtUANJq3smre6U",
+    authDomain: "timecoin-92d97.firebaseapp.com",
+    projectId: "timecoin-92d97",
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+
+  const ADMIN_PASSWORD = "@timiKizz1";
+
+  auth.onAuthStateChanged(async user => {
+    if (!user) {
+      window.location.href = "unauthorized.html"; // Not logged in
+      return;
+    }
+
+    const userDoc = await db.collection("users").doc(user.uid).get();
+    if (!userDoc.exists || !userDoc.data().isAdmin) {
+      window.location.href = "unauthorized.html"; // Not an admin
+    }
+  });
+
+  async function verifyAdmin() {
+    const inputPassword = document.getElementById("admin-password").value.trim();
+    const user = auth.currentUser;
+
+    if (!user) {
+      document.getElementById("admin-error").innerText = "You must be logged in.";
+      return;
+    }
+
+    if (inputPassword === ADMIN_PASSWORD) {
+      document.getElementById("admin-auth").style.display = "none";
+      document.getElementById("admin-panel").style.display = "block";
+    } else {
+      document.getElementById("admin-error").innerText = "Incorrect password. Try again.";
+    }
+  }
+
+  function logout() {
+    document.getElementById("admin-panel").style.display = "none";
+    document.getElementById("admin-auth").style.display = "block";
+    document.getElementById("admin-password").value = "";
+    document.getElementById("admin-error").innerText = "";
+  }
+</script>
+
+</body>
+</html>

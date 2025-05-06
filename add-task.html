@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Add Task</title>
+  <meta charset="UTF-8" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 30px;
+    }
+    form {
+      max-width: 400px;
+      margin: auto;
+    }
+    input, textarea, button {
+      display: block;
+      width: 100%;
+      margin: 10px 0;
+      padding: 8px;
+    }
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h2>Add Task</h2>
+  <div id="unauthorized" class="hidden">
+    <p>You are not authorized to view this page.</p>
+  </div>
+  <form id="taskForm" class="hidden">
+    <input type="text" id="taskTitle" placeholder="Task Title" required />
+    <textarea id="taskDescription" placeholder="Task Description" required></textarea>
+    <input type="number" id="reward" placeholder="Reward (e.g. 50)" required />
+    <input type="url" id="submissionLink" placeholder="Link to submit task proof" required />
+    <button type="submit">Add Task</button>
+  </form>
+
+  <!-- Firebase App -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyA-e0Dpok43vl7URZ-BoQtUANJq3smre6U",
+      authDomain: "timecoin-92d97.firebaseapp.com",
+      projectId: "timecoin-92d97",
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    const taskForm = document.getElementById('taskForm');
+    const unauthorized = document.getElementById('unauthorized');
+
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        taskForm.classList.remove('hidden');
+      } else {
+        unauthorized.classList.remove('hidden');
+      }
+    });
+
+    taskForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const taskTitle = document.getElementById('taskTitle').value;
+      const taskDescription = document.getElementById('taskDescription').value;
+      const reward = parseInt(document.getElementById('reward').value);
+      const submissionLink = document.getElementById('submissionLink').value;
+
+      await db.collection('tasks').add({
+        title: taskTitle,
+        description: taskDescription,
+        reward,
+        submissionLink,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      });
+
+      alert("Task added successfully!");
+      taskForm.reset();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Make Admin</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 50px;
+    }
+    input, button {
+      padding: 10px;
+      margin: 10px;
+      width: 300px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Make User Admin</h2>
+  <input type="text" id="uid" placeholder="Enter User UID">
+  <br>
+  <button onclick="makeAdmin()">Make Admin</button>
+  <p id="status"></p>
+
+  <!-- Firebase Scripts -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+  <script>
+    // Your Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyA-e0Dpok43vl7URZ-BoQtUANJq3smre6U",
+      authDomain: "timecoin-92d97.firebaseapp.com",
+      projectId: "timecoin-92d97",
+      storageBucket: "timecoin-92d97.appspot.com",
+      messagingSenderId: "944867492309",
+      appId: "1:944867492309:web:99ee3ebd9adcc8e9e4bd5c",
+      measurementId: "G-5CRJ3MXR3X"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // Make admin function
+    function makeAdmin() {
+      const uid = document.getElementById('uid').value;
+      if (!uid) {
+        document.getElementById('status').innerText = "Please enter a UID";
+        return;
+      }
+
+      db.collection("users").doc(uid).set({ isAdmin: true }, { merge: true })
+        .then(() => {
+          document.getElementById('status').innerText = "User successfully promoted to admin!";
+        })
+        .catch((error) => {
+          document.getElementById('status').innerText = "Error: " + error.message;
+        });
+    }
+  </script>
+</body>
+</html>

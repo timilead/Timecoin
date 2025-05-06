@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Withdrawal</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f9f9f9;
+    }
+    h2 {
+      text-align: center;
+    }
+    form {
+      max-width: 400px;
+      margin: 20px auto;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    label {
+      display: block;
+      margin-top: 15px;
+    }
+    input, select, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+    }
+    .success, .error {
+      text-align: center;
+      margin-top: 15px;
+      font-weight: bold;
+    }
+    .success { color: green; }
+    .error { color: red; }
+  </style>
+</head>
+<body>
+
+  <h2>Request Withdrawal</h2>
+  <form id="withdrawalForm">
+    <label for="balanceType">Select Balance Type:</label>
+    <select id="balanceType" required>
+      <option value="">--Choose--</option>
+      <option value="bonus">Timecoin Bonus</option>
+      <option value="referral">Referral Balance</option>
+    </select>
+
+    <label for="amount">Amount (NGN):</label>
+    <input type="number" id="amount" placeholder="Enter amount" required />
+
+    <label for="bankName">Bank Name:</label>
+    <input type="text" id="bankName" placeholder="e.g. Access Bank" required />
+
+    <label for="accountName">Account Name:</label>
+    <input type="text" id="accountName" placeholder="e.g. John Doe" required />
+
+    <label for="accountNumber">Account Number:</label>
+    <input type="text" id="accountNumber" placeholder="e.g. 0123456789" required />
+
+    <button type="submit">Submit Withdrawal</button>
+
+    <div class="success" id="successMsg"></div>
+    <div class="error" id="errorMsg"></div>
+  </form>
+
+  <script type="module">
+    // Firebase setup
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyA-e0Dpok43vl7URZ-BoQtUANJq3smre6U",
+      authDomain: "timecoin-92d97.firebaseapp.com",
+      projectId: "timecoin-92d97",
+      storageBucket: "timecoin-92d97.appspot.com",
+      messagingSenderId: "944867492309",
+      appId: "1:944867492309:web:99ee3ebd9adcc8e9e4bd5c"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    const form = document.getElementById("withdrawalForm");
+    const successMsg = document.getElementById("successMsg");
+    const errorMsg = document.getElementById("errorMsg");
+
+    let currentUserId = null;
+
+    onAuthStateChanged(auth, user => {
+      if (user) {
+        currentUserId = user.uid;
+      } else {
+        alert("Please login first.");
+        window.location.href = "login.html";
+      }
+    });
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      successMsg.textContent = "";
+      errorMsg.textContent = "";
+
+      const balanceType = document.getElementById("balanceType").value;
+      const amount = parseFloat(document.getElementById("amount").value);
+      const bankName = document.getElementById("bankName").value.trim();
+      const accountName = document.getElementById("accountName").value.trim();
+      const accountNumber = document.getElementById("accountNumber").value.trim();
+
+      if (!balanceType || !amount || !bankName || !accountName || !accountNumber) {
+        errorMsg.textContent = "All fields are required.";
+        return;
+      }
+
+      if ((balanceType === "bonus" && amount < 2500) || (balanceType === "referral" && amount < 1000)) {
+        errorMsg.textContent = `Minimum withdrawal is ${balanceType === "bonus" ? "₦2500" : "₦1000"}.`;
+        return;
+      }
+
+      const finalAmount = amount * 0.95; // 5% fee
+
+      try {
+        await addDoc(collection(db, "withdrawals"), {
+          userId: currentUserId,
+          type: balanceType,
+          amount,
+          finalAmount,
+          bankDetails: {
+            bankName,
+            accountName,
+            accountNumber
+          },
+          status: "pending",
+          timestamp: serverTimestamp()
+        });
+
+        successMsg.textContent = "Withdrawal request submitted successfully!";
+        form.reset();
+      } catch (error) {
+        console.error("Error submitting withdrawal:", error);
+        errorMsg.textContent = "An error occurred. Try again.";
+      }
+    });
+  </script>
+</body>
+</html>

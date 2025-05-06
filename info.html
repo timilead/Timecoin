@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>User Account Info</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- Use compat version of Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .container {
+      background: white;
+      padding: 25px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      width: 90%;
+      max-width: 400px;
+    }
+    h2 {
+      text-align: center;
+      color: #333;
+    }
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 15px;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 20px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Account Info</h2>
+    <form id="accountForm">
+      <label>Account Name:</label>
+      <input type="text" id="accountName" required>
+
+      <label>Account Number:</label>
+      <input type="text" id="accountNumber" required>
+
+      <label>Bank Name:</label>
+      <input type="text" id="bankName" required>
+
+      <button type="submit">Save Info</button>
+    </form>
+  </div>
+
+  <script>
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyA-e0Dpok43vl7URZ-BoQtUANJq3smre6U",
+      authDomain: "timecoin-92d97.firebaseapp.com",
+      projectId: "timecoin-92d97",
+      storageBucket: "timecoin-92d97.appspot.com",
+      messagingSenderId: "1036649461893",
+      appId: "1:1036649461893:web:5579f7e51a69a8e4a2a6f9"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    firebase.auth().onAuthStateChanged(user => {
+      if (user) {
+        document.getElementById("accountForm").addEventListener("submit", (e) => {
+          e.preventDefault();
+          db.collection("users").doc(user.uid).set({
+            userId: user.uid,
+            accountName: document.getElementById("accountName").value,
+            accountNumber: document.getElementById("accountNumber").value,
+            bankName: document.getElementById("bankName").value,
+            amount: 0
+          }).then(() => {
+            alert("Info saved!");
+          }).catch(error => {
+            console.error("Error writing document: ", error);
+          });
+        });
+      } else {
+        alert("Please log in first.");
+      }
+    });
+  </script>
+</body>
+</html>

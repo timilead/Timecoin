@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f2f2f2;
+      text-align: center;
+    }
+
+    .nav-container {
+      margin-top: 20px;
+    }
+
+    .nav-links {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .nav-links a {
+      background-color: #003366;
+      color: white;
+      text-decoration: none;
+      padding: 10px 15px;
+      border-radius: 5px;
+      font-weight: bold;
+    }
+
+    .balances {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      margin: 0 auto;
+    }
+
+    .balance-box {
+      background-color: white;
+      padding: 20px 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      width: 260px;
+    }
+
+    .balance-box h3 {
+      margin: 0 0 10px 0;
+      color: #003366;
+    }
+
+    .balance-box p {
+      font-size: 24px;
+      color: #28a745;
+      font-weight: bold;
+    }
+
+    .navbar {
+      background-color: #003366;
+      color: white;
+      padding: 10px 20px;
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+    }
+
+    .hamburger {
+      font-size: 24px;
+      cursor: pointer;
+    }
+
+    .dropdown {
+      display: none;
+      position: absolute;
+      right: 10px;
+      top: 60px;
+      background-color: white;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      border-radius: 5px;
+      padding: 10px;
+    }
+
+    .dropdown a {
+      display: block;
+      padding: 8px;
+      color: black;
+      text-decoration: none;
+    }
+
+    .dropdown a:hover {
+      background-color: #ddd;
+    }
+
+    .posts-container {
+      margin: 30px auto;
+      max-width: 600px;
+      padding: 10px;
+    }
+
+    .post {
+      background: white;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      text-align: left;
+    }
+
+    .testimonial-banner {
+      position: fixed;
+      bottom: 0;
+      background-color: #003366;
+      color: white;
+      width: 100%;
+      padding: 10px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="navbar">
+  <div class="hamburger" onclick="toggleDropdown()">☰</div>
+  <div class="dropdown" id="dropdownMenu">
+    <a href="profile.html">Profile</a><a href="info.html">Account No</a>
+    <a href="terms.html">Terms and Conditions</a>
+    <a href="policy.html">Policy</a>
+    <a href="notification.html">Notifications</a>
+    <a href="#" onclick="logout()">Logout</a>
+  </div>
+</div>
+
+<div style="padding: 20px; background: #fff;">
+  <div style="font-weight: bold; color: #003366; margin-bottom: 5px;">VIP Progress</div>
+  <div id="vipLabel" style="margin-bottom: 10px;">VIP 0</div>
+  <div style="background-color: #ddd; height: 20px; border-radius: 10px; overflow: hidden;">
+    <div id="vipProgress" style="background-color: #004aad; height: 100%; width: 0%; transition: width 0.5s;"></div>
+  </div>
+</div>
+
+<div class="nav-container">
+  <div class="nav-links">
+    <a href="withdrawal.html">Withdrawals</a>
+    <a href="referrals.html">Referral Program</a>
+    <a href="tasks.html">Tasks</a>
+  </div>
+</div>
+
+<div class="balances">
+  <div class="balance-box">
+    <h3>Timecoin Bonus</h3>
+    <p id="bonusBalance">₦0</p>
+  </div>
+  <div class="balance-box">
+    <h3>Referral Balance</h3>
+    <p id="referralBalance">₦0</p>
+  </div>
+</div>
+
+<div class="posts-container" id="postsContainer">
+  <!-- Posts will appear here -->
+</div>
+
+<div class="testimonial-banner">
+  "I earned ₦200 in one day just completing tasks!" — Real User
+</div>
+
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyA-e0Dpok43vl7URZ-BoQtUANJq3smre6U",
+    authDomain: "timecoin-92d97.firebaseapp.com",
+    projectId: "timecoin-92d97",
+    storageBucket: "timecoin-92d97.appspot.com",
+    messagingSenderId: "944867492309",
+    appId: "1:944867492309:web:99ee3ebd9adcc8e9e4bd5c",
+    measurementId: "G-5CRJ3MXR3X"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+
+  function toggleDropdown() {
+    const dropdown = document.getElementById('dropdownMenu');
+    dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+  }
+
+  function logout() {
+    firebase.auth().signOut().then(() => {
+      window.location.href = 'login.html';
+    });
+  }
+
+  auth.onAuthStateChanged(user => {
+    if (!user) {
+      window.location.href = 'login.html';
+    } else {
+      const uid = user.uid;
+      db.collection("users").doc(uid).get().then(doc => {
+        if (doc.exists) {
+          const data = doc.data();
+          document.getElementById("bonusBalance").textContent = '₦' + (data.bonusBalance || 200);
+          document.getElementById("referralBalance").textContent = '₦' + (data.referralBalance || 0);
+
+          const invites = data.invitedCount || 0;
+          const vipLevel = Math.floor(invites / 5);
+          const progressToNext = invites % 5;
+          const progressPercent = (progressToNext / 5) * 100;
+          document.getElementById("vipLabel").textContent = `VIP ${vipLevel}`;
+          document.getElementById("vipProgress").style.width = `${progressPercent}%`;
+        }
+      });
+
+      db.collection("posts").orderBy("timestamp", "desc").get().then(snapshot => {
+        const container = document.getElementById("postsContainer");
+        snapshot.forEach(doc => {
+          const post = doc.data();
+          const shareText = `${post.heading}\n\n${post.body}`;
+          const encodedText = encodeURIComponent(shareText);
+          const encodedLink = encodeURIComponent(post.link || 'https://timecoin.com');
+
+          const div = document.createElement("div");
+          div.className = "post";
+          div.innerHTML = `
+            <h3>${post.heading}</h3>
+            <h5>${post.subheading}</h5>
+            <p>${post.body}</p>
+            ${post.link ? `<a href="${post.link}" target="_blank">Read more</a><br>` : ''}
+            <div style="margin-top: 10px;">
+              <a href="https://wa.me/?text=${encodedText}" target="_blank"
+                style="background-color:#25D366;color:white;padding:8px 12px;border:none;border-radius:5px;text-decoration:none;margin-right:5px;">
+                Share on WhatsApp
+              </a>
+              <a href="https://www.facebook.com/sharer/sharer.php?u=${encodedLink}&quote=${encodedText}" target="_blank"
+                style="background-color:#3b5998;color:white;padding:8px 12px;border:none;border-radius:5px;text-decoration:none;margin-right:5px;">
+                Share on Facebook
+              </a>
+              <button onclick="copyToClipboard(\`${shareText}\`)" style="background-color:#555;color:white;padding:8px 12px;border:none;border-radius:5px;">
+                Copy to Clipboard
+              </button>
+            </div>
+          `;
+          container.appendChild(div);
+        });
+      });
+    }
+  });
+
+  function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => {
+      alert("Post copied to clipboard!");
+    }).catch(err => {
+      alert("Failed to copy: " + err);
+    });
+  }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Generate Payment Code - Timecoin</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(to right, #1e3c72, #2a5298);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .code-container {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+      text-align: center;
+      max-width: 400px;
+      width: 90%;
+    }
+
+    .code-container h2 {
+      color: #1e3c72;
+      margin-bottom: 20px;
+    }
+
+    input {
+      padding: 12px 15px;
+      margin: 10px 0;
+      width: 100%;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
+
+    button {
+      background-color: #1e3c72;
+      color: white;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background-color: #16305c;
+    }
+  </style>
+</head>
+<body>
+  <div class="code-container">
+    <h2>Generate Payment Code</h2>
+    <form id="generate-form">
+      <input type="text" id="paymentCode" placeholder="Payment Code (Auto-generated)" disabled>
+      <input type="number" id="usageLimit" placeholder="Usage Limit (Optional)" min="1" required>
+      <button type="submit">Generate Code</button>
+    </form>
+    <p><a href="dashboard.html">Back to Dashboard</a></p>
+  </div>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyA-e0Dpok43vl7URZ-BoQtUANJq3smre6U",
+      authDomain: "timecoin-92d97.firebaseapp.com",
+      projectId: "timecoin-92d97",
+      storageBucket: "timecoin-92d97.appspot.com",
+      messagingSenderId: "944867492309",
+      appId: "1:944867492309:web:99ee3ebd9adcc8e9e4bd5c",
+      measurementId: "G-5CRJ3MXR3X"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+
+    // Auto-generate the payment code
+    function generatePaymentCode() {
+      const randomCode = Math.random().toString(36).substr(2, 8).toUpperCase();
+      document.getElementById('paymentCode').value = randomCode;
+      return randomCode;
+    }
+
+    document.getElementById('generate-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const usageLimit = document.getElementById('usageLimit').value;
+      const paymentCode = document.getElementById('paymentCode').value || generatePaymentCode();
+
+      if (!usageLimit || isNaN(usageLimit) || usageLimit <= 0) {
+        alert('Please enter a valid usage limit.');
+        return;
+      }
+
+      const codeDoc = {
+        code: paymentCode,
+        used: false,
+        usedBy: "",
+        usageLimit: Number(usageLimit),
+      };
+
+      try {
+        // Add payment code to Firestore
+        await db.collection('paymentCodes').doc(paymentCode).set(codeDoc);
+        alert('Payment code generated successfully!');
+        window.location.href = "dashboard.html"; // Redirect to dashboard
+      } catch (error) {
+        console.error('Error generating payment code: ', error);
+        alert('Failed to generate payment code.');
+      }
+    });
+
+    // Initialize with an auto-generated code when the page loads
+    generatePaymentCode();
+  </script>
+</body>
+</html>

@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Timecoin | Earn Daily</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f9f9f9;
+      color: #333;
+    }
+    header {
+      background-color: #004aad;
+      color: white;
+      text-align: center;
+      padding: 2rem 1rem;
+    }
+    header h1 {
+      font-size: 2.5rem;
+      animation: fadeInDown 2s;
+    }
+    header p {
+      font-size: 1.2rem;
+      margin-top: 1rem;
+      animation: fadeInUp 2s;
+    }
+    .join-btn {
+      margin-top: 1.5rem;
+      background-color: gold;
+      color: black;
+      border: none;
+      padding: 1rem 2rem;
+      font-size: 1.1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    .join-btn:hover {
+      background-color: #ffd700;
+    }
+    section {
+      padding: 2rem;
+      max-width: 1000px;
+      margin: auto;
+    }
+    .features {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      margin-top: 2rem;
+    }
+    .feature {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    .feature img {
+      width: 50px;
+    }
+    .payment-box {
+      background: #fff;
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      margin-top: 3rem;
+    }
+    .payment-box input {
+      width: 100%;
+      padding: 0.8rem;
+      margin-top: 1rem;
+      margin-bottom: 1rem;
+      font-size: 1rem;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    .submit-btn {
+      background-color: #004aad;
+      color: white;
+      padding: 1rem 2rem;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    .info-board {
+      margin-top: 2rem;
+      padding: 1rem;
+      background: #e3f2fd;
+      color: #004aad;
+      border-left: 5px solid #004aad;
+    }
+    footer {
+      text-align: center;
+      padding: 2rem;
+      font-size: 0.9rem;
+      color: #777;
+    }
+
+    @media (max-width: 768px) {
+      .features {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1 class="animate__animated animate__fadeInDown">Earn Daily with Timecoin</h1>
+    <p class="animate__animated animate__fadeInUp">Complete Tasks. Refer & Earn. Withdraw Easily.</p>
+    <a href="home.html"><button class="join-btn animate__animated animate__fadeIn">Join Now</button></a>
+  </header>
+
+  <section>
+    <h2>How Timecoin Works</h2>
+    <div class="features">
+      <div class="feature">
+        <img src="https://img.icons8.com/color/48/000000/coins.png"/>
+        <h3>Earn Coins</h3>
+        <p>Complete simple tasks daily and earn Timecoin rewards.</p>
+      </div>
+      <div class="feature">
+        <img src="https://img.icons8.com/emoji/48/check-mark-emoji.png"/>
+        <h3>Get Paid</h3>
+        <p>Withdraw to your bank after reaching the minimum balance.</p>
+      </div>
+      <div class="feature">
+        <img src="https://img.icons8.com/fluency/48/link.png"/>
+        <h3>Refer & Earn</h3>
+        <p>Invite friends with your link and earn ₦800 per referral.</p>
+      </div>
+      <div class="feature">
+        <img src="https://img.icons8.com/dusk/48/calendar.png"/>
+        <h3>Since 2023</h3>
+        <p>Trusted by thousands since its launch with consistent payouts.</p>
+      </div>
+    </div>
+
+    <div class="payment-box">
+      <h3>Buy Payment Code</h3>
+      <p>Enter your email and make payment to get your unique access code.</p>
+      <input type="email" id="email" placeholder="Enter your email" required />
+      <input type="text" value="1500" id="amount" readonly />
+      <button class="submit-btn" id="submit-btn">Pay Now</button>
+    </div>
+
+    <div class="info-board">
+      <strong>Promo:</strong> Earn up to ₦5000 extra daily when you complete 5 tasks!
+    </div>
+  </section>
+
+  <footer>
+    &copy; 2025 Timecoin | All rights reserved.
+  </footer>
+
+<!-- Firebase Firestore Script -->
+<script type="module">
+  // Firebase config
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+  import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyC-LwNCuH3-LnDJymZXwJROc_HVXxRgfXs",
+    authDomain: "timecoin-92d97.firebaseapp.com",
+    projectId: "timecoin-92d97",
+    storageBucket: "timecoin-92d97.appspot.com",
+    messagingSenderId: "754896271469",
+    appId: "1:754896271469:web:0a0e401688a8fa632e8d9f",
+    measurementId: "G-8CP3F38B4K"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // Handle button click
+  document.querySelector('.submit-btn').addEventListener('click', async () => {
+    const emailInput = document.querySelector('input[type="email"]');
+    const email = emailInput.value.trim();
+
+    if (!email) {
+      alert("Please enter your email.");
+      return;
+    }
+
+    try {
+      await addDoc(collection(db, "paymentCodes"), {
+        email: email,
+        amount: 1500,
+        timestamp: serverTimestamp()
+      });
+      alert("Payment code request sent successfully!");
+      emailInput.value = "";
+    } catch (error) {
+      console.error("Error sending request:", error);
+      alert("Something went wrong. Try again later.");
+    }
+  });
+</script>
+</body>
+</html>

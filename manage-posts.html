@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Manage Posts</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    .container {
+      max-width: 700px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+    }
+    input, textarea, button {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background-color: #2196F3;
+      color: white;
+      cursor: pointer;
+    }
+    .post {
+      background: #e3f2fd;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 6px;
+    }
+    .post h3 {
+      margin: 0;
+    }
+    .post p {
+      margin: 5px 0;
+    }
+    .share-btn, .delete-btn {
+      padding: 5px 10px;
+      margin-right: 10px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .share-btn {
+      background-color: #4CAF50;
+      color: white;
+    }
+    .delete-btn {
+      background-color: #f44336;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Manage Posts</h2>
+    <input type="text" id="heading" placeholder="Post Heading" />
+    <input type="text" id="subheading" placeholder="Post Subheading" />
+    <textarea id="body" placeholder="Write the post content here..." rows="6"></textarea>
+    <input type="text" id="link" placeholder="Optional link to external platform" />
+    <button onclick="createPost()">Post Article</button>
+
+    <h3>All Posts</h3>
+    <div id="posts-container"></div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+  <script>
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyA-e0Dpok43vl7URZ-BoQtUANJq3smre6U",
+      authDomain: "timecoin-92d97.firebaseapp.com",
+      projectId: "timecoin-92d97",
+      storageBucket: "timecoin-92d97.appspot.com",
+      messagingSenderId: "944867492309",
+      appId: "1:944867492309:web:99ee3ebd9adcc8e9e4bd5c"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    async function createPost() {
+      const heading = document.getElementById('heading').value;
+      const subheading = document.getElementById('subheading').value;
+      const body = document.getElementById('body').value;
+      const link = document.getElementById('link').value;
+
+      if (!heading || !subheading || !body) {
+        alert("Please fill all required fields");
+        return;
+      }
+
+      await db.collection("posts").add({
+        heading,
+        subheading,
+        body,
+        link,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      });
+
+      alert("Post added successfully!");
+      document.getElementById('heading').value = "";
+      document.getElementById('subheading').value = "";
+      document.getElementById('body').value = "";
+      document.getElementById('link').value = "";
+      fetchPosts();
+    }
+
+    function fetchPosts() {
+      db.collection("posts").orderBy("timestamp", "desc").onSnapshot(snapshot => {
+        const postsContainer = document.getElementById("posts-container");
+        postsContainer.innerHTML = "";
+        snapshot.forEach(doc => {
+          const post = doc.data();
+          const postDiv = document.createElement("div");
+          postDiv.className = "post";
+          postDiv.innerHTML = `
+            <h3>${post.heading}</h3>
+            <h4>${post.subheading}</h4>
+            <p>${post.body}</p>
+            ${post.link ? `<a href="${post.link}" target="_blank">Visit Link</a>` : ""}
+            <div style="margin-top:10px;">
+              <button class="share-btn" onclick="sharePost('${post.heading}', '${post.subheading}', '${post.body}', '${post.link || ''}')">Share</button>
+              <button class="delete-btn" onclick="deletePost('${doc.id}')">Delete</button>
+            </div>
+          `;
+          postsContainer.appendChild(postDiv);
+        });
+      });
+    }
+
+    function deletePost(id) {
+      if (confirm("Are you sure you want to delete this post?")) {
+        db.collection("posts").doc(id).delete();
+      }
+    }
+
+    function sharePost(heading, subheading, body, link) {
+      const shareText = `${heading}\n${subheading}\n\n${body}\n${link}`;
+      if (navigator.share) {
+        navigator.share({ text: shareText });
+      } else {
+        prompt("Copy and share this text:", shareText);
+      }
+    }
+
+    fetchPosts();
+  </script>
+</body>
+</html>

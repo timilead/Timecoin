@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Sign Up - Timecoin</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(to right, #1e3c72, #2a5298);
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .signup-container {
+      background: white;
+      padding: 30px 25px;
+      border-radius: 12px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+      max-width: 400px;
+      width: 90%;
+    }
+
+    .signup-container h2 {
+      text-align: center;
+      color: #1e3c72;
+      margin-bottom: 20px;
+    }
+
+    form input {
+      width: 100%;
+      padding: 12px 15px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      box-sizing: border-box;
+    }
+
+    form input:focus {
+      border-color: #1e3c72;
+      outline: none;
+    }
+
+    form button {
+      width: 100%;
+      padding: 12px;
+      background-color: #1e3c72;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      margin-top: 10px;
+      cursor: pointer;
+    }
+
+    form button:hover {
+      background-color: #16305c;
+    }
+
+    form p {
+      margin-top: 15px;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    form a {
+      color: #1e3c72;
+      text-decoration: none;
+    }
+
+    form a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="signup-container">
+    <h2>Sign Up to Timecoin</h2>
+    <form id="signup-form">
+      <input type="text" id="fullName" placeholder="Full Name" required>
+      <input type="email" id="email" placeholder="Email" required>
+      <input type="password" id="password" placeholder="Password" required>
+      <input type="text" id="paymentCode" placeholder="Payment Code" required>
+      <input type="text" id="referralCode" placeholder="Referral Code (optional)">
+      <button type="submit">Sign Up</button>
+      <p>Already have an account? <a href="login.html">Login here</a></p>
+    </form>
+  </div>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+
+  <script>
+    // Your Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyA-e0Dpok43vl7URZ-BoQtUANJq3smre6U",
+      authDomain: "timecoin-92d97.firebaseapp.com",
+      projectId: "timecoin-92d97",
+      storageBucket: "timecoin-92d97.appspot.com",
+      messagingSenderId: "944867492309",
+      appId: "1:944867492309:web:99ee3ebd9adcc8e9e4bd5c",
+      measurementId: "G-5CRJ3MXR3X"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    document.getElementById('signup-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const fullName = document.getElementById('fullName').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const paymentCode = document.getElementById('paymentCode').value.trim();
+      const referralCode = document.getElementById('referralCode').value.trim();
+
+      try {
+        // Check if payment code exists and is unused
+        const codeRef = db.collection('paymentCodes').doc(paymentCode);
+        const doc = await codeRef.get();
+
+        if (!doc.exists || doc.data().used === true) {
+          alert('Invalid or already used payment code.');
+          return;
+        }
+
+        // Create user with email and password
+        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+        const user = userCredential.user;
+
+        // Save user profile to Firestore
+        const referralGenerated = Math.random().toString(36).substring(2, 8).toUpperCase();
+
+        await db.collection('users').doc(user.uid).set({
+          fullName: fullName,
+          email: email,
+          referralCode: referralGenerated,
+          referredBy: referralCode || null,
+          bonusBalance: 200,
+          referralBalance: 0,
+          createdAt: new Date().toISOString()
+        });
+
+        // Mark payment code as used
+        await codeRef.update({
+          used: true,
+          usedBy: user.uid
+        });
+
+        alert('Signup successful! Please log in.');
+        window.location.href = "login.html";
+      } catch (error) {
+        console.error('Signup error:', error);
+        alert(error.message);
+      }
+    });
+  </script>
+</body>
+</html>

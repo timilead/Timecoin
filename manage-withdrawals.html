@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Manage Withdrawals - Admin</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background-color: #f3f3f3;
+    }
+
+    h2 {
+      text-align: center;
+    }
+
+    .withdrawal-list {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .withdrawal-item {
+      background: #fff;
+      padding: 15px;
+      margin: 10px 0;
+      border-left: 5px solid #2196f3;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .withdrawal-item p {
+      margin: 5px 0;
+    }
+
+    .btn {
+      padding: 8px 12px;
+      border: none;
+      cursor: pointer;
+      margin-right: 10px;
+      border-radius: 4px;
+    }
+
+    .approve-btn {
+      background-color: #4caf50;
+      color: white;
+    }
+
+    .decline-btn {
+      background-color: #f44336;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <h2>Withdrawal Requests</h2>
+  <div class="withdrawal-list" id="withdrawalList">
+    <!-- Requests will appear here -->
+  </div>
+
+  <!-- Firebase App and Firestore -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+
+  <script>
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyA-e0Dpok43vl7URZ-BoQtUANJq3smre6U",
+      authDomain: "timecoin-92d97.firebaseapp.com",
+      projectId: "timecoin-92d97",
+      storageBucket: "timecoin-92d97.appspot.com",
+      messagingSenderId: "944867492309",
+      appId: "1:944867492309:web:99ee3ebd9adcc8e9e4bd5c"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const withdrawalList = document.getElementById("withdrawalList");
+
+    function renderRequest(doc) {
+      const data = doc.data();
+      const userId = data.userId;
+
+      const item = document.createElement("div");
+      item.className = "withdrawal-item";
+      item.innerHTML = `
+        <p><strong>Requested By (User ID):</strong> ${userId}</p>
+        <p><strong>Name:</strong> Loading...</p>
+        <p><strong>Account Number:</strong> ${data.accountNumber || 'N/A'}</p>
+        <p><strong>Account Name:</strong> ${data.accountName || 'N/A'}</p>
+        <p><strong>Bank Name:</strong> ${data.bankName || 'N/A'}</p>
+        <p><strong>Amount Requested:</strong> ₦${data.amount}</p>
+        <p><strong>Status:</strong> ${data.status}</p>
+        <button class="btn approve-btn">Approve</button>
+        <button class="btn decline-btn">Decline</button>
+      `;
+
+      // Fetch user details
+      db.collection("users").doc(userId).get().then(userDoc => {
+        if (userDoc.exists) {
+          const user = userDoc.data();
+          item.querySelector("p:nth-child(2)").innerHTML =
+            `<strong>Name:</strong> ${user.name || 'N/A'} (${user.email || 'N/A'})`;
+        } else {
+          item.querySelector("p:nth-child(2)").textContent = "Name: User not found";
+        }
+      });
+
+      const approveBtn = item.querySelector(".approve-btn");
+      const declineBtn = item.querySelector(".decline-btn");
+
+      approveBtn.onclick = () => {
+        const reason = prompt("Enter approval note (optional):", "Withdrawal approved");
+        db.collection("withdrawals").doc(doc.id).update({ status: "approved" });
+        item.querySelector("p:nth-child(7)").textContent = "Status: approved";
+
+        db.collection("notifications").add({
+          userId: userId,
+          type: "withdrawal",
+          status: "approved",
+          message: `Your withdrawal request has been approved. ${reason}`,
+          timestamp: new Date()
+        });
+      };
+
+      declineBtn.onclick = () => {
+        const reason = prompt("Enter reason for decline:");
+        if (!reason) return alert("Decline reason is required.");
+
+        db.collection("withdrawals").doc(doc.id).update({ status: "declined" });
+        item.querySelector("p:nth-child(7)").textContent = "Status: declined";
+
+        db.collection("notifications").add({
+          userId: userId,
+          type: "withdrawal",
+          status: "declined",
+          message: `Your withdrawal request was declined. Reason: ${reason}`,
+          timestamp: new Date()
+        });
+      };
+
+      withdrawalList.appendChild(item);
+    }
+
+    // Load pending withdrawal requests
+    db.collection("withdrawals").orderBy("timestamp", "desc").onSnapshot(snapshot => {
+      withdrawalList.innerHTML = "";
+      snapshot.forEach(doc => {
+        if (doc.data().status === "pending") {
+          renderRequest(doc);
+        }
+      });
+    });
+  </script>
+</body>
+</html>
